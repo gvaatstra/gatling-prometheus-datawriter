@@ -66,7 +66,10 @@ class PrometheusDataWriter(clock: Clock, configuration: GatlingConfiguration) ex
   }
 
   override def onMessage(message: LoadEventMessage, data: PrometheusData): Unit = message match {
-    case user: UserMessage         => onUserMessage(user, data)
+//      Replaced for Gatling 3.3.1
+//    case user: UserMessage         => onUserMessage(user, data)
+    case userStart: UserStartMessage    => onUserStartMessage(userStart, data)
+    case userEnd: UserEndMessage      => onUserEndMessage(userEnd, data)
     case response: ResponseMessage => onResponseMessage(response, data)
     case error: ErrorMessage       => onErrorMessage(error, data)
     case _                         =>
@@ -84,16 +87,27 @@ class PrometheusDataWriter(clock: Clock, configuration: GatlingConfiguration) ex
       data.server.get.stop()
   }
 
-  private def onUserMessage(user: UserMessage, data: PrometheusData): Unit = {
-    import user._
-
-    event match {
-      case Start =>
+  //  Added for Gatling 3.3.1
+  private def onUserStartMessage(user: UserStartMessage, data: PrometheusData): Unit = {
         data.startedUsers.labels(data.simulation).inc()
-      case End =>
-        data.finishedUsers.labels(data.simulation).inc()
-    }
   }
+
+  //  Added for Gatling 3.3.1
+  private def onUserEndMessage(user: UserEndMessage, data: PrometheusData): Unit = {
+    data.finishedUsers.labels(data.simulation).inc()
+  }
+
+//  Replaced for Gatling 3.3.1
+//  private def onUserMessage(user: UserMessage, data: PrometheusData): Unit = {
+//    import user._
+//
+//    event match {
+//      case Start =>
+//        data.startedUsers.labels(data.simulation).inc()
+//      case End =>
+//        data.finishedUsers.labels(data.simulation).inc()
+//    }
+//  }
 
   private def onResponseMessage(response: ResponseMessage, data: PrometheusData): Unit = {
     import response.{ endTimestamp, startTimestamp, name, message, responseCode, status }
